@@ -1,7 +1,7 @@
-from pyrogram import Client, Filters
-from pyrogram.api import functions
+from pyrogram import Client, filters
 
 import random, time, requests
+from config import API_ID,API_HASH
 
 headers = {
     'authority': 'thispersondoesnotexist.com',
@@ -16,24 +16,27 @@ headers = {
 
 names = []
 
+import os
+print(os.listdir("."))
+
 with open("./names.txt", "r") as file:
 	names = file.read().split('\n')
 	file.close()
 
 app = Client(
 	"my_account",
-	api_id="get it from my.telegram.org",
-	api_hash="get it from my.telegram.org")
+	api_id=API_ID,
+	api_hash=API_HASH)
 
 @app.on_message(None)
 def hello(client, message):
 	with open('./profile.jpeg', 'wb') as f:
 		f.write(requests.get('https://thispersondoesnotexist.com/image', headers=headers).content)
 	app.set_profile_photo(photo="./profile.jpeg")
-	app.send(
-		functions.account.UpdateProfile(
-			first_name=random.choice(names), last_name=random.choice(names)
-		)
-	)
+	app.update_profile(first_name=random.choice(names).title(), last_name=random.choice(names).title())
+	
+	# delete all the previous photos except current one
+	photos = app.get_profile_photos("me")
+	app.delete_profile_photos([p.file_id for p in photos[1:]])
 
 app.run()
